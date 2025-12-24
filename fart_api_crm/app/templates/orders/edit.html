@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Редактировать приходной ордер на склад #{{ order.id }}</h2>
+<form method="post">
+    <div class="grid">
+        <label>Организация
+            <select name="organization_id" required>
+                {% for o in orgs %}
+                <option value="{{ o.id }}" {% if order.organization_id == o.id %}selected{% endif %}>{{ o.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Склад
+            <select name="department_id" required>
+                {% for d in deps %}
+                <option value="{{ d.id }}" {% if order.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Сотрудник (МОЛ)
+            <select name="employee_id" required>
+                {% for e in emps %}
+                <option value="{{ e.id }}" {% if order.employee_id == e.id %}selected{% endif %}>
+                    {{ e.last_name }} {{ e.first_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Номер ордера
+            <input type="text" name="order_number" value="{{ order.order_number }}" required>
+        </label>
+
+        <label>Дата ордера
+            <input type="date" name="order_date" value="{{ order.order_date }}" required>
+        </label>
+
+        <label style="grid-column: 1 / -1;">Назначение
+            <textarea name="purpose" rows="3">{{ order.purpose }}</textarea>
+        </label>
+    </div>
+
+    <h3>Позиции</h3>
+    <table id="items-table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Ед. изм.</th>
+                <th>Кол-во</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="items-body">
+            {% for it in order.items %}
+            <tr>
+                <td>
+                    <select name="product_id">
+                        {% for p in prods %}
+                        <option value="{{ p.id }}" {% if it.product_id == p.id %}selected{% endif %}>
+                            {{ p.name }} ({{ p.unit.name }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="unit-cell">{% for p in prods %}{% if it.product_id == p.id %}{{ p.unit.name }}{% endif %}{% endfor %}</td>
+                <td><input type="number" name="amount" min="1" step="1" value="{{ it.amount }}"></td>
+                <td>{{ "%.2f"|format(it.price) if it.price else "—" }}</td>
+                <td>{{ "%.2f"|format(it.amount * it.price) if it.price else "—" }}</td>
+                <td><button class="btn danger" type="button" onclick="removeRow(this)">✖</button></td>
+            </tr>
+            {% endfor %}
+            {% if order.items|length == 0 %}
+            <tr>
+                <td>
+                    <select name="product_id">
+                        {% for p in prods %}
+                        <option value="{{ p.id }}">{{ p.name }} ({{ p.unit.name }})</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td class="unit-cell">{{ prods[0].unit.name if prods|length > 0 else 'шт' }}</td>
+                <td><input type="number" name="amount" min="1" step="1"></td>
+                <td>—</td>
+                <td>—</td>
+                <td><button class="btn danger" type="button" onclick="removeRow(this)">✖</button></td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="toolbar">
+        <button class="btn" type="button" onclick="addRow()">Добавить строку</button>
+    </div>
+
+    <button class="btn" type="submit">Сохранить</button>
+</form>
+
+<script>
+function addRow() {
+    const body = document.getElementById('items-body');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>
+            <select name="product_id" class="product-select">
+                {% for p in prods %}
+                <option value="{{ p.id }}" data-unit="{{ p.unit.name }}">{{ p.name }} ({{ p.unit.name }})</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td class="unit-cell">{{ prods[0].unit.name if prods|length > 0 else 'шт' }}</td>
+        <td><input type="number" name="amount" min="1" step="1"></td>
+        <td>—</td>
+        <td>—</td>
+        <td><button class="btn danger" type="button" onclick="removeRow(this)">✖</button></td>
+    `;
+    body.appendChild(tr);
+}
+function removeRow(btn) {
+    const tr = btn.closest('tr');
+    tr.parentNode.removeChild(tr);
+}
+// update unit-cell when product select changes
+document.addEventListener('change', function(e){
+    if(e.target && e.target.matches('.product-select')){
+        const sel = e.target;
+        const unit = sel.options[sel.selectedIndex].dataset.unit || '';
+        const unitCell = sel.closest('tr').querySelector('.unit-cell');
+        if(unitCell) unitCell.textContent = unit;
+    }
+});
+</script>
+{% endblock %}

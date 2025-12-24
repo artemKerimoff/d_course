@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Счет-фактура №{{ invoice.invoice_number }} от {{ invoice.invoice_date|rusdate }}</title>
+  <link rel="stylesheet" href="/static/css/print.css">
+  <style>
+    .invoice-table { width:100%; border-collapse:collapse; margin-top:6mm }
+    .invoice-table th, .invoice-table td { border:1px solid #000; padding:4px 6px; }
+    .invoice-table th { background:#eee; text-align:center; }
+    .text-right { text-align:right }
+    .text-center { text-align:center }
+    .doc-header { text-align:right; margin-bottom:6mm; font-size:85% }
+    .doc-title { text-align:center; font-weight:bold; font-size:120%; margin-top:2mm }
+    .doc-subtitle { text-align:center; margin-bottom:4mm }
+    .meta-grid { display:flex; gap:12mm; margin-top:4mm }
+    .meta-grid .meta { min-width:160px }
+    @media print { .screen-toolbar { display:none } }
+  </style>
+</head>
+<body>
+  <div class="screen-toolbar">
+    <a class="btn" href="javascript:window.print()">Печать</a>
+    <a class="btn" href="/invoices">Назад к списку</a>
+  </div>
+
+  <div class="container-doc">
+    <div class="doc-header">
+      <div>Приложение №1 к постановлению правительства Российской Федерации</div>
+      <div>от 26 декабря 2011 года № 1137</div>
+    </div>
+
+    <div class="doc-title">СЧЕТ-ФАКТУРА</div>
+    <div class="doc-subtitle">№{{ invoice.invoice_number }} от {{ invoice.invoice_date|rusdate }}</div>
+
+    <div class="meta-grid">
+      <div class="meta"><strong>Продавец:</strong><div>{{ invoice.supplier.name if invoice.supplier else '—' }}</div></div>
+      <div class="meta"><strong>Покупатель:</strong><div>{{ invoice.organization.name if invoice.organization else '—' }}</div></div>
+      <div class="meta"><strong>Дата:</strong><div>{{ invoice.invoice_date|rusdate }}</div></div>
+    </div>
+
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th style="width:30px">№</th>
+          <th style="width:80px">Код</th>
+          <th>Товар</th>
+          <th style="width:80px">Ед. изм.</th>
+          <th style="width:110px">Цена с НДС</th>
+          <th style="width:110px">Цена без НДС</th>
+          <th style="width:80px">Кол-во</th>
+          <th style="width:120px">Сумма с НДС</th>
+          <th style="width:120px">Сумма без НДС</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for it in invoice.items %}
+        <tr>
+          <td class="text-center">{{ loop.index }}</td>
+          <td class="text-center">{{ it.product_type_code if it.product_type_code is defined else (it.product.product_code if it.product and getattr(it.product, 'product_code', None) else '') }}</td>
+          <td>{{ it.product_name }}</td>
+          <td class="text-center">{{ it.unit if it.unit is defined else (it.unit_name if it.unit_name is defined else (it.unit.name if it.unit else 'шт')) }}</td>
+          {% set qty = (it.quantity|float) if it.quantity is defined else 0 %}
+          {% set amt_no = (it.amount_without_vat|float) if it.amount_without_vat is defined else 0 %}
+          {% set amt_with = (it.amount_with_vat|float) if it.amount_with_vat is defined else 0 %}
+          <td class="text-right">{% if qty and amt_with %}{{ "%.2f"|format(amt_with / qty) }}{% else %}{{ "%.2f"|format(it.price|float) }}{% endif %}</td>
+          <td class="text-right">{% if qty and amt_no %}{{ "%.2f"|format(amt_no / qty) }}{% else %}—{% endif %}</td>
+          <td class="text-right">{{ "%.3f"|format(qty) }}</td>
+          <td class="text-right">{{ "%.2f"|format(amt_with) }}</td>
+          <td class="text-right">{{ "%.2f"|format(amt_no) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div style="height:12mm"></div>
+
+    <table style="width:100%; margin-top:6mm; border-collapse:collapse;">
+      <tr>
+        <td style="width:50%; vertical-align:bottom; text-align:left; padding-right:10px;">
+          <div style="border-bottom: 1px solid #000; width:70%; height:1.2em; margin-bottom:4px;"></div>
+          <div style="font-size:95%;">Руководитель (должность, подпись, ФИО)</div>
+        </td>
+        <td style="width:50%; vertical-align:bottom; text-align:left;">
+          <div style="border-bottom: 1px solid #000; width:70%; height:1.2em; margin-bottom:4px;"></div>
+          <div style="font-size:95%;">Главный бухгалтер (подпись, ФИО)</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>

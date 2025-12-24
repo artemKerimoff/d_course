@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="toolbar">
+  <a class="btn" href="/customers/create">Создать</a>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Название</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for item in customers %}
+    <tr>
+      <td>{{ item.id }}</td>
+      <td>{{ item.name }}</td>
+      <td>
+        <a href="/customers/{{ item.id }}/edit">✏️</a>
+        <a href="/customers/{{ item.id }}/delete">🗑️</a>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

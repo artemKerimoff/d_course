@@ -1,0 +1,36 @@
+{% extends "base.html" %} 
+
+{% block content %}
+    <div class="toolbar">
+    <a class="btn" href="/invoices/create">Создать счёт-фактуру</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>№ счета</th>
+            <th>Дата</th>
+            <th>Организация</th>
+            <th>Поставщик</th>
+            <th>Сумма (с НДС)</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for inv in invoices %}
+        <tr>
+            <td>{{ inv.invoice_number }}</td>
+            <td>{{ inv.invoice_date|rusdate }}</td>
+            <td>{{ inv.organization.name if inv.organization else '—' }}</td>
+            <td>{{ inv.supplier.name if inv.supplier else '—' }}</td>
+            <td>{{ "%.2f"|format(inv.total_with_vat) }}</td>
+            <td>
+                <a href="/invoices/{{ inv.id }}/print" title="Печать">🖨️</a>
+                <a href="/invoices/{{ inv.id }}/edit" title="Редактировать">✏️</a>
+                <a href="/invoices/{{ inv.id }}/delete" title="Удалить">🗑️</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{{ title or "FastAPI" }}</title>
+  <link rel="stylesheet" href="/static/css/theme.css">
+</head>
+<body>
+  <header class="container">
+    <nav>
+      <div style="margin-top:10px; margin-bottom:6px; font-weight:600;">Справочники</div>
+      <a href="/">Главная</a>
+      <a href="/organizations">Организации</a>
+      <a href="/departments">Отделы</a>
+      <a href="/employees">Сотрудники</a>
+      <a href="/positions">Должности</a>
+      <a href="/customers">Контрагенты</a>
+      <a href="/products">Товары</a>
+      <a href="/units">Ед. изм.</a>
+      <a href="/accounts">Счета</a>
+
+      <div style="margin:10px 0 6px 0; font-weight:600;">Документы</div>
+      <a href="/proxies">Доверенности</a>
+      <a href="/orders">Приходный ордер</a>
+      <a href="/invoices">Счет-фактура</a>
+      <a href="/requisitions">Требование-накладная</a>
+    </nav>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="container muted">© {{ now().year }}</footer>
+</body>
+</html>

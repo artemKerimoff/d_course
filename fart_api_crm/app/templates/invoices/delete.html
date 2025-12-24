@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Удалить Счет-фактура #{{ invoice.invoice_number }}</h2>
+<form method="post">
+    <p>Вы уверены, что хотите удалить Счет-фактура <strong>#{{ invoice.invoice_number }}</strong>?</p>
+    <button class="btn danger" type="submit">Удалить</button>
+    <a class="btn" href="/invoices">Отмена</a>
+</form>
+{% endblock %}

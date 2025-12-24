@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Приходной ордер на склад №{{ order.order_number }} от {{ order.order_date|rusdate }}</title>
+    <link rel="stylesheet" href="/static/css/print.css">
+</head>
+<body>
+    <div class="screen-toolbar">
+        <a class="btn" href="javascript:window.print()">Печать</a>
+        <a class="btn" href="/orders">Назад к списку</a>
+    </div>
+
+    <div class="container-doc">
+        <div class="doc-header" style="text-align:right; margin-bottom:6mm;">
+            <div>Типовая межотраслевая форма М-4</div>
+            <div>утверждена требованием Росстата России от 30.10.97 №71а</div>
+        </div>
+        <div class="doc-title">Приходной ордер на склад</div>
+        <div class="doc-subtitle">№{{ order.order_number }} от {{ order.order_date|rusdate }}</div>
+
+        <div class="meta-grid">
+            <div>
+                <label>Организация:</label>
+                <div class="value">{{ order.organization.name }}</div>
+            </div>
+            <div>
+                <label>Дата составления:</label>
+                <div class="value">{{ order.order_date|rusdate }}</div>
+            </div>
+
+            <div>
+                <label>Склад:</label>
+                <div class="value">{{ order.department.name }}</div>
+            </div>
+            <div>
+                <label>Код:</label>
+                <div class="value">{{ order.id }}</div>
+            </div>
+
+            <div style="grid-column: 1 / -1;">
+                <label>Материально ответственное лицо:</label>
+                <div class="value">{{ order.employee.last_name }} {{ order.employee.first_name }} {{ order.employee.middle_name or '' }}, {{ order.employee.post }}</div>
+            </div>
+
+            {% if order.purpose %}
+            <div style="grid-column: 1 / -1;">
+                <label>Основание:</label>
+                <div class="value">{{ order.purpose }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th style="width: 8mm;">№</th>
+                    <th>Наименование</th>
+                    <th style="width: 15mm;">Ед. изм.</th>
+                    <th style="width: 20mm;">Кол-во</th>
+                    <th style="width: 25mm;">Цена</th>
+                    <th style="width: 25mm;">Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for it in order.items %}
+                <tr>
+                    <td style="text-align:center;">{{ loop.index }}</td>
+                    <td>{{ it.product.name }}</td>
+                    <td>{{ it.product.unit.name }}</td>
+                    <td style="text-align:right;">{{ it.amount }}</td>
+                    <td style="text-align:right;">{{ "%.2f"|format(it.price) if it.price else "—" }}</td>
+                    <td style="text-align:right;">{{ "%.2f"|format(it.amount * it.price) if it.price else "—" }}</td>
+                </tr>
+                {% endfor %}
+                {% if order.items|length == 0 %}
+                <tr>
+                    <td colspan="6"><small class="muted">Позиции отсутствуют</small></td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        {% set total = order.items|selectattr('price')|map(attribute='amount')|sum * order.items|selectattr('price')|map(attribute='price')|sum %}
+        {% if total > 0 %}
+        <div style="text-align: right; margin-top: 10mm; font-weight: bold;">
+            Итого: {{ "%.2f"|format(total) }} руб.
+        </div>
+        {% endif %}
+
+        <div class="signs" style="margin-top: 15mm;">
+            <div>
+                Разрешил: _________________________
+                <div class="sign-line"></div>
+                <small>(должность, подпись, ФИО)</small>
+            </div>
+            <div>
+                Получил: _________________________
+                <div class="sign-line"></div>
+                <small>(подпись, ФИО)</small>
+            </div>
+            <div>
+                Сдал: _________________________
+                <div class="sign-line"></div>
+                <small>(подпись, ФИО)</small>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

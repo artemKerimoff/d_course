@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Требование-накладная #{{ requisition.requisition_number }}</h2>
+<div class="toolbar">
+    <a class="btn" href="/requisitions/{{ requisition.id }}/print">Печать</a>
+    <a class="btn" href="/requisitions">Назад к списку</a>
+</div>
+
+<div class="meta-grid">
+    <div>
+        <label>Организация:</label>
+        <div class="value">{{ requisition.organization.name if requisition.organization else '—' }}</div>
+    </div>
+    <div>
+        <label>Склад:</label>
+        <div class="value">{{ requisition.warehouse if requisition.warehouse else '—' }}</div>
+    </div>
+    <div>
+        <label>Дата:</label>
+        <div class="value">{{ requisition.requisition_date|rusdate }}</div>
+    </div>
+    <div>
+        <label>Номер:</label>
+        <div class="value">{{ requisition.requisition_number }}</div>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Наименование</th>
+            <th>Ед.</th>
+            <th>Запрошено</th>
+            <th>Выдано</th>
+            <th>Цена</th>
+            <th>Сумма</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for it in requisition.items %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ it.product_name }}</td>
+            <td>{{ it.unit }}</td>
+            <td style="text-align:right;">{{ it.requested_quantity }}</td>
+            <td style="text-align:right;">{{ it.issued_quantity }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(it.price) }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(it.amount) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

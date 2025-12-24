@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Счет-фактура №{{ invoice.invoice_number }} от {{ invoice.invoice_date|rusdate }}</title>
+    <link rel="stylesheet" href="/static/css/print.css">
+    <style>
+        body { margin:8mm 8mm }
+        /* constrain document to a printable area and center it */
+        .container-doc { width:180mm; max-width:180mm; margin:0 auto; padding-left:0 }
+        /* table fills the same content area as header and party blocks */
+        .invoice-table { width:100%; border-collapse:collapse; margin-top:6mm; font-size:11px }
+        .invoice-table th, .invoice-table td { border:1px solid #000; padding:3px 6px; }
+        .invoice-table th { background:#eee; text-align:center; }
+        .text-right { text-align:right }
+        .text-center { text-align:center }
+        .doc-header { text-align:right; margin-bottom:6mm; font-size:78% }
+        .doc-title { text-align:center; font-weight:bold; font-size:90%; margin-top:2mm }
+        .doc-subtitle { text-align:center; margin-bottom:4mm }
+        .meta-grid { display:flex; gap:12mm; margin-top:4mm }
+        .meta-grid .meta { min-width:160px }
+        .party-block { margin-top:2mm; font-size:11px }
+        .party-block + .party-block { margin-top:0 }
+        .field-value { min-width:220px }
+        .signatures { font-size:10px }
+        @media print { .screen-toolbar { display:none } }
+    </style>
+</head>
+<body>
+    <div class="screen-toolbar">
+        <a class="btn" href="javascript:window.print()">Печать</a>
+        <a class="btn" href="/invoices">Назад к списку</a>
+    </div>
+
+    <div class="container-doc">
+        <div class="doc-header">
+            <div>Приложение №1</div>
+            <div>к постановлению правительства Российской</div>
+            <div>Федерации</div>
+            <div>от 26 декабря 2011 года № 1137</div>
+        </div>
+
+        <div class="doc-title">
+            СЧЕТ-ФАКТУРА №{{ invoice.invoice_number }} от {{ invoice.invoice_date|rusdate }}
+        </div>
+
+        <style>
+            .party-block { margin-top:6mm; }
+            .party-line { margin:3px 0; }
+            .field-label { display:inline-block; width:120px; font-weight:bold }
+            .field-value { display:inline-block; border-bottom:1px solid #000; min-width:360px; padding-left:6px }
+            @media print { .field-value { border-bottom:1px solid #000 } }
+        </style>
+
+        <div class="party-block">
+            <div class="party-line"><span class="field-label">Продавец:</span> <span class="field-value">{{ invoice.supplier.name if invoice.supplier else '—' }}</span></div>
+            <div class="party-line"><span class="field-label">Адрес:</span> <span class="field-value">{{ invoice.supplier.address if invoice.supplier and invoice.supplier.address else '—' }}</span></div>
+            <div class="party-line"><span class="field-label">Счет:</span> <span class="field-value">{{ invoice.supplier.account.account if invoice.supplier and invoice.supplier.account else '—' }}</span></div>
+            <div class="party-line"><span class="field-label">ИНН:</span> <span class="field-value">{{ invoice.supplier.inn if invoice.supplier and invoice.supplier.inn else '—' }}</span></div>
+            <div class="party-line"><span class="field-label">Руководитель:</span> <span class="field-value">{{ invoice.supplier.chief if invoice.supplier and invoice.supplier.chief else '—' }}</span></div>
+        </div>
+
+        <div class="party-block">
+            <div class="party-line"><span class="field-label">Покупатель:</span> <span class="field-value">{{ invoice.organization.name if invoice.organization else '—' }}</span></div>
+            <div class="party-line"><span class="field-label">Адрес:</span> <span class="field-value">{{ invoice.organization.address if invoice.organization and invoice.organization.address else '—' }}</span></div>
+            <div class="party-line"><span class="field-label">Счет:</span> <span class="field-value">{{ invoice.organization.account.account if invoice.organization and invoice.organization.account else '—' }}</span></div>
+            <div class="party-line"><span class="field-label">ИНН:</span> <span class="field-value">{{ invoice.organization.inn if invoice.organization and invoice.organization.inn else '—' }}</span></div>
+            <div class="party-line"><span class="field-label">Руководитель:</span> <span class="field-value">{{ invoice.organization.chief if invoice.organization and invoice.organization.chief else '—' }}</span></div>
+        </div>
+
+    
+
+        <table class="invoice-table" style="margin-left:0;">
+            <thead>
+                <tr>
+                    <th style="width:30px">№</th>
+                    <th style="min-width:160px">Товар</th>
+                    <th style="width:70px">Код вида товара</th>
+                    <th style="width:50px">Ед. изм.</th>
+                    <th style="width: 50px">Цена</th>
+                    <th style="width:60px">Кол-во</th>
+                    <th style="width:110px">Стоимость без НДС</th>
+                    <th style="width:80px">Ставка НДС</th>
+                    <th style="width:90px">Сумма НДС</th>
+                    <th style="width:110px">Стоимость с НДС</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for it in invoice.items %}
+                <tr>
+                    <td class="text-center">{{ loop.index }}</td>
+                    <td>{{ it.product_name }}</td>
+                    <td class="text-center">{{ it.product_type_code if it.product_type_code is defined else (it.product.id if it.product else '') }}</td>
+                    <td class="text-center">{{ it.unit if it.unit is defined else (it.unit_name if it.unit_name is defined else (it.unit.name if it.unit else 'шт')) }}</td>
+                    {% set qty = (it.quantity|float) if it.quantity is defined else 0 %}
+                    {% set amt_no = (it.amount_without_vat|float) if it.amount_without_vat is defined else 0 %}
+                    {% set amt_with = (it.amount_with_vat|float) if it.amount_with_vat is defined else 0 %}
+                    {% set vat_rate = (it.vat_rate|float) if it.vat_rate is defined else 0 %}
+                    {% set vat_amount = amt_with - amt_no %}
+                    <td class="text-center">{{ it.product.price }}</td>
+                    <td class="text-center">{{ "%.3f"|format(qty) }}</td>
+                    <td class="text-center">{{ "%.2f"|format(amt_no) }}</td>
+                    <td class="text-center">{{ "%.2f"|format(vat_rate) }}%</td>
+                    <td class="text-center">{{ "%.2f"|format(vat_amount) }}</td>
+                    <td class="text-center">{{ "%.2f"|format(amt_with) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="height:12mm"></div>
+
+        <table class="signatures" style="width:100%; margin-top:6mm; border-collapse:collapse;">
+            <tr>
+                <td style="width:50%; vertical-align:bottom; text-align:left; padding-right:10px;">
+                    <div style="border-bottom: 1px solid #000; width:70%; height:1.2em; margin-bottom:4px;"></div>
+                    <div>Руководитель (должность, подпись, ФИО)</div>
+                </td>
+                <td style="width:50%; vertical-align:bottom; text-align:left;">
+                    <div style="border-bottom: 1px solid #000; width:70%; height:1.2em; margin-bottom:4px;"></div>
+                    <div>Главный бухгалтер (подпись, ФИО)</div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{% extends "base.html" %} 
+
+{% block content %}
+    <div class="toolbar">
+    <a class="btn" href="/requisitions/create">Создать требование-накладную</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Дата</th>
+            <th>Организация</th>
+            <th>Подразделение</th>
+            <th>Сотрудник</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for r in requisitions %}
+        <tr>
+            <td>{{ r.requisition_number }}</td>
+            <td>{{ r.requisition_date|rusdate }}</td>
+            <td>{{ r.organization.name if r.organization else '—' }}</td>
+            <td>{{ r.department.name if r.department else '—' }}</td>
+            <td>{{ r.employee.last_name }} {{ r.employee.first_name }}</td>
+            <td>
+                <a href="/requisitions/{{ r.id }}/print" title="Печать">🖨️</a>
+                <a href="/requisitions/{{ r.id }}/edit" title="Редактировать">✏️</a>
+                <a href="/requisitions/{{ r.id }}/delete" title="Удалить">🗑️</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

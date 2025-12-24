@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Счет-фактура #{{ invoice.invoice_number }}</h2>
+<div class="toolbar">
+    <a class="btn" href="/invoices/{{ invoice.id }}/print">Печать</a>
+    <a class="btn" href="/invoices">Назад к списку</a>
+</div>
+
+<div class="meta-grid">
+    <div>
+        <label>Организация:</label>
+        <div class="value">{{ invoice.organization.name if invoice.organization else '—' }}</div>
+    </div>
+    <div>
+        <label>Поставщик:</label>
+        <div class="value">{{ invoice.supplier.name if invoice.supplier else '—' }}</div>
+    </div>
+    <div>
+        <label>Дата:</label>
+        <div class="value">{{ invoice.invoice_date|rusdate }}</div>
+    </div>
+    <div>
+        <label>Номер:</label>
+        <div class="value">{{ invoice.invoice_number }}</div>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>№</th>
+            <th>Наименование</th>
+            <th>Ед.</th>
+            <th>Кол-во</th>
+            <th>Цена</th>
+            <th>НДС</th>
+            <th>Сумма</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for it in invoice.items %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td>{{ it.product_name }}</td>
+            <td>{{ it.unit }}</td>
+            <td style="text-align:right;">{{ it.quantity }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(it.price) }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(it.vat_amount) }}</td>
+            <td style="text-align:right;">{{ "%.2f"|format(it.amount_with_vat) }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="text-align:right; margin-top:10px; font-weight:bold;">
+    Итого: {{ "%.2f"|format(invoice.total_with_vat) }}
+</div>
+
+{% endblock %}

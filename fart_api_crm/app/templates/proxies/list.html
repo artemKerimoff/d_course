@@ -1,0 +1,31 @@
+{% extends "base.html" %} {% block content %}
+<div class="toolbar"><a class="btn" href="/proxies/create">Создать</a></div>
+<table>
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Организация</th>
+      <th>Сотрудник</th>
+      <th>Контрагент</th>
+      <th>Срок действия</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in proxies %}
+    <tr>
+      <td>{{ p.id }}</td>
+      <td>{{ p.organization.name if p.organization else '—' }}</td>
+      <td>{{ p.employee.last_name }} {{ p.employee.first_name }}</td>
+      <td>{{ p.customer.name }}</td>
+      <td>{{ p.date_of_issue }} → {{ p.is_valid_until }}</td>
+      <td>
+        <a href="/proxies/{{ p.id }}/print" title="Печать">🖨️</a>
+        <a href="/proxies/{{ p.id }}/edit" title="Редактировать">✏️</a>
+        <a href="/proxies/{{ p.id }}/delete" title="Удалить">🗑️</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

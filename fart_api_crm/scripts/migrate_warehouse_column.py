@@ -1,0 +1,17 @@
+from sqlalchemy import text
+from app.core.config import DATABASE_URL
+from sqlalchemy import create_engine
+
+engine = create_engine(DATABASE_URL)
+
+sql = """
+ALTER TABLE material_requisitions
+ALTER COLUMN warehouse_id TYPE varchar(255)
+USING warehouse_id::varchar;
+"""
+
+with engine.connect() as conn:
+    conn.execute(text(sql))
+    conn.commit()
+
+print("Migration applied: material_requisitions.warehouse_id -> varchar(255)")

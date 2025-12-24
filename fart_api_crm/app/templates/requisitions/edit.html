@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Редактировать Требование-накладная #{{ requisition.id }}</h2>
+<form method="post">
+    <div class="grid">
+        <label>Организация
+            <select name="organization_id" required>
+                {% for o in orgs %}
+                <option value="{{ o.id }}" {% if requisition.organization_id == o.id %}selected{% endif %}>{{ o.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Склад
+            <input type="text" name="warehouse_id" required value="{{ requisition.warehouse_id }}" style="width:100%;">
+        </label>
+
+        <label>Подразделение
+            <select name="department_id" required>
+                {% for d in deps %}
+                <option value="{{ d.id }}" {% if requisition.department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Сотрудник
+            <select name="employee_id" required>
+                {% for e in emps %}
+                <option value="{{ e.id }}" {% if requisition.employee_id == e.id %}selected{% endif %}>{{ e.last_name }} {{ e.first_name }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Номер заявки
+            <input type="text" name="requisition_number" value="{{ requisition.requisition_number }}" required>
+        </label>
+
+        <label>Дата
+            <input type="date" name="requisition_date" value="{{ requisition.requisition_date }}" required>
+        </label>
+
+        <label>Назначение
+            <textarea name="purpose" rows="2" style="width:100%;">{{ requisition.purpose }}</textarea>
+        </label>
+    </div>
+
+    <h3>Позиции</h3>
+    <table id="items-table">
+        <thead>
+            <tr>
+                <th>Товар</th>
+                <th>Ед.</th>
+                <th>Запрошено</th>
+                <th>Выдано</th>
+                <th>Цена</th>
+                <th>Сумма</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="items-body">
+            {% for it in requisition.items %}
+            <tr>
+                <td>
+                    <select name="product_id">
+                        {% for p in prods %}
+                        <option value="{{ p.id }}" {% if it.product_id == p.id %}selected{% endif %}>{{ p.name }} ({{ p.unit.name }})</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>{{ it.unit }}</td>
+                <td><input type="number" name="requested_quantity" min="0" step="0.01" value="{{ it.requested_quantity }}"></td>
+                <td><input type="number" name="issued_quantity" min="0" step="0.01" value="{{ it.issued_quantity }}" oninput="recalcTotals()"></td>
+                <td><input type="number" name="price" step="0.01" value="{{ it.price }}" oninput="recalcTotals()"></td>
+                <td><input type="number" name="amount" step="0.01" value="{{ it.amount }}" readonly></td>
+                <td><button class="btn danger" type="button" onclick="removeRow(this)">✖</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="toolbar">
+        <button class="btn" type="button" onclick="addRow()">Добавить строку</button>
+    </div>
+
+    <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <strong>Итого: </strong><span id="total-display">0.00</span>
+        </div>
+        <div>
+            <input type="hidden" name="total_amount" id="total_amount" value="0">
+            <button class="btn" type="submit">Сохранить</button>
+        </div>
+    </div>
+</form>
+
+<script>
+function recalcTotals() {
+    const rows = document.querySelectorAll('#items-body tr');
+    let total = 0;
+    rows.forEach(r => {
+        const qty = parseFloat(r.querySelector('input[name="issued_quantity"]').value) || 0;
+        const price = parseFloat(r.querySelector('input[name="price"]').value) || 0;
+        const amountEl = r.querySelector('input[name="amount"]');
+        const amount = +(qty * price).toFixed(2);
+        amountEl.value = amount;
+        total += amount;
+    });
+    document.getElementById('total-display').innerText = total.toFixed(2);
+    document.getElementById('total_amount').value = total.toFixed(2);
+}
+
+function addRow() {
+    const body = document.getElementById('items-body');
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+        <td>
+            <select name="product_id">
+                {% for p in prods %}
+                <option value="{{ p.id }}">{{ p.name }} ({{ p.unit.name }})</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td>{{ prods[0].unit.name if prods|length > 0 else 'шт' }}</td>
+        <td><input type="number" name="requested_quantity" min="0" step="0.01"></td>
+        <td><input type="number" name="issued_quantity" min="0" step="0.01" oninput="recalcTotals()"></td>
+        <td><input type="number" name="price" step="0.01" oninput="recalcTotals()"></td>
+        <td><input type="number" name="amount" step="0.01" readonly></td>
+        <td><button class="btn danger" type="button" onclick="removeRow(this)">✖</button></td>
+    `;
+    body.appendChild(tr);
+    recalcTotals();
+}
+function removeRow(btn) {
+    const tr = btn.closest('tr');
+    tr.parentNode.removeChild(tr);
+    recalcTotals();
+}
+document.addEventListener('change', recalcTotals);
+document.addEventListener('input', recalcTotals);
+recalcTotals();
+</script>
+{% endblock %}

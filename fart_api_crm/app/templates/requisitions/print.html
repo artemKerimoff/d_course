@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <title>Требование-накладная №{{ requisition.requisition_number }} от {{ requisition.requisition_date|rusdate }}</title>
+    <link rel="stylesheet" href="/static/css/print.css">
+</head>
+<body>
+    <div class="screen-toolbar">
+        <a class="btn" href="javascript:window.print()">Печать</a>
+        <a class="btn" href="/requisitions">Назад к списку</a>
+    </div>
+
+    <div class="container-doc">
+        <div class="doc-header" style="text-align:right; margin-bottom:6mm; font-size:85%;">
+            <div>Типовая межотраслевая форма № М-11</div>
+            <div>утверждена постановлением Росстата России от 30.07.97 №71а</div>
+        </div>
+        <div class="doc-title">ТРЕБОВАНИЕ-НАКЛАДНАЯ</div>
+        <div class="doc-subtitle">№{{ requisition.requisition_number }} от {{ requisition.requisition_date|rusdate }}</div>
+
+        <div class="meta-vertical">
+            <div>
+                <label>Организация:</label>
+                <div class="value">{{ requisition.organization.name if requisition.organization else '—' }}</div>
+            </div>
+            <div>
+                <label>Склад:</label>
+                <div class="value">{{ requisition.warehouse_id if requisition.warehouse_id else '—' }}</div>
+            </div>
+            <div>
+                <label>Дата:</label>
+                <div class="value">{{ requisition.requisition_date|rusdate }}</div>
+            </div>
+            <div>
+                <label>Сотрудник:</label>
+                <div class="value">{% if requisition.employee %}{{ requisition.employee.last_name }} {{ requisition.employee.first_name }}{% else %}—{% endif %}</div>
+            </div>
+        </div>
+
+        <div style="margin-top:1mm;">
+            <label>Назначение:</label>
+            <div class="value">{{ requisition.purpose if requisition.purpose else '—' }}</div>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                        <th style="width:8mm;">№</th>
+                        <th>Наименование</th>
+                        <th style="width:20mm;">Ед.</th>
+                        <th style="width:25mm;">Запрошено</th>
+                        <th style="width:25mm;">Выдано</th>
+                        <th style="width:25mm;">Сумма</th>
+                    </tr>
+            </thead>
+            <tbody>
+                {% for it in requisition.items %}
+                <tr>
+                    <td style="text-align:center;">{{ loop.index }}</td>
+                        <td>{{ it.product_name if it.product_name else (it.product.name if it.product else '—') }}</td>
+                        <td>{{ it.unit if it.unit else (it.product.unit.name if it.product else '—') }}</td>
+                        <td style="text-align:right;">{{ it.requested_quantity }}</td>
+                        <td style="text-align:right;">{{ it.issued_quantity }}</td>
+                    <td style="text-align:right;">{{ "%.2f"|format(it.amount) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="signs" style="margin-top: 15mm;">
+            <div>
+                Выдал: _________________________
+                <div class="sign-line"></div>
+                <small>(должность, подпись, ФИО)</small>
+            </div>
+            <div>
+                Получил: _________________________
+                <div class="sign-line"></div>
+                <small>(подпись, ФИО)</small>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
